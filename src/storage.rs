@@ -26,7 +26,7 @@ impl Default for Settings {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 pub enum Theme {
     Light,
     Dark,

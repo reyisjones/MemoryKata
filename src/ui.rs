@@ -1,7 +1,7 @@
 use eframe::egui::{self, Align, Layout, RichText, ViewportCommand};
 
 use crate::games::{self, GameModule, GameState};
-use crate::storage::{SaveData, Storage};
+use crate::storage::{SaveData, Storage, Theme};
 
 pub enum View {
     MainMenu,
@@ -15,6 +15,7 @@ pub struct App {
     pub data: SaveData,
     pub view: View,
     pub modules: Vec<Box<dyn GameModule + Send + Sync>>,
+    active_theme: Option<Theme>,
 }
 
 impl App {
@@ -35,6 +36,7 @@ impl App {
             data,
             view: View::MainMenu,
             modules,
+            active_theme: None,
         };
         app.hydrate_scores();
         app
@@ -56,10 +58,25 @@ impl App {
             *module.state_mut() = saved_state.clone();
         }
     }
+
+    fn sync_theme(&mut self, ctx: &egui::Context) {
+        let desired = self.data.settings.theme;
+        if self.active_theme == Some(desired) {
+            return;
+        }
+
+        let visuals = match desired {
+            Theme::Light => egui::Visuals::light(),
+            Theme::Dark => egui::Visuals::dark(),
+        };
+        ctx.set_visuals(visuals);
+        self.active_theme = Some(desired);
+    }
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        self.sync_theme(ctx);
         match self.view {
             View::MainMenu => self.render_main_menu(ctx, frame),
             View::Settings => self.render_settings(ctx, frame),
